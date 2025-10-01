@@ -58,7 +58,7 @@ class PollReader():
         for i in self.raw_data[1:]:
 
             # split up the row by column
-            seperated = i.split(',')
+            seperated = i.strip().split(',')
             sample = seperated[2].split()
             sample_size = int(sample[0])
             if len(sample) > 1:
@@ -98,11 +98,14 @@ class PollReader():
         for result in self.data_dict['Trump result']:
             if result > max_trump:
                 max_trump = result
+    
+        max_harris *= 100
+        max_trump *= 100
         
         if max_harris > max_trump:
-            return f"Harris: {max_harris}"
+            return f"Harris: {max_harris}%"
         elif max_harris < max_trump:
-            return f"Trump: {max_trump}"
+            return f"Trump: {max_trump}%"
         else:
             return 'EVEN'
             
@@ -149,7 +152,35 @@ class PollReader():
             tuple: A tuple containing the net change for Harris and Trump, in that order.
                    Positive values indicate an increase, negative values indicate a decrease.
         """
-        pass
+        earliest_harris = self.data_dict['Harris result'][:30]
+        latest_harris = self.data_dict['Harris result'][-30:]
+
+        earliest_trump = self.data_dict['Trump result'][:30]
+        latest_trump = self.data_dict['Trump result'][-30:]
+
+        if earliest_harris:
+            earliest_harris_avg = sum(earliest_harris) / len(earliest_harris)
+        else:
+            earliest_harris_avg = 0.0
+        if latest_harris:
+            latest_harris_avg = sum(latest_harris) / len(latest_harris)
+        else:
+            latest_harris_avg = 0.0
+        if earliest_trump:
+            earliest_trump_avg = sum(earliest_trump) / len(earliest_trump)
+        else:
+            earliest_trump_avg = 0.0
+        if latest_trump:
+            latest_trump_avg = sum(latest_trump) / len(latest_trump)
+        else: 
+            latest_trump_avg = 0.0
+
+        harris_change = latest_harris_avg - earliest_harris_avg
+        trump_change = latest_trump_avg - earliest_trump_avg
+
+        return (harris_change, trump_change)
+
+
 
 
 class TestPollReader(unittest.TestCase):
